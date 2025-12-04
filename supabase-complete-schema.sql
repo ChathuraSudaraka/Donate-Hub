@@ -7,7 +7,26 @@
 -- STEP 1: CLEAN UP (Drop existing objects)
 -- ============================================
 
--- Drop triggers first
+-- Drop policies first (they depend on functions)
+DROP POLICY IF EXISTS "Users can view their own profile" ON user_profiles;
+DROP POLICY IF EXISTS "Users can insert their own profile" ON user_profiles;
+DROP POLICY IF EXISTS "Users can update their own profile" ON user_profiles;
+DROP POLICY IF EXISTS "Admins can view all profiles" ON user_profiles;
+DROP POLICY IF EXISTS "Users can view their own addresses" ON user_addresses;
+DROP POLICY IF EXISTS "Users can insert their own addresses" ON user_addresses;
+DROP POLICY IF EXISTS "Users can update their own addresses" ON user_addresses;
+DROP POLICY IF EXISTS "Users can delete their own addresses" ON user_addresses;
+DROP POLICY IF EXISTS "Anyone can view available items" ON donation_items;
+DROP POLICY IF EXISTS "Users can view own donations" ON donation_items;
+DROP POLICY IF EXISTS "Admins can view all items" ON donation_items;
+DROP POLICY IF EXISTS "Users can insert donation items" ON donation_items;
+DROP POLICY IF EXISTS "Admins can update donation items" ON donation_items;
+DROP POLICY IF EXISTS "Admins can delete donation items" ON donation_items;
+DROP POLICY IF EXISTS "Users can view their own requests" ON item_requests;
+DROP POLICY IF EXISTS "Users can create requests" ON item_requests;
+DROP POLICY IF EXISTS "Admins can update requests" ON item_requests;
+
+-- Drop triggers
 DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 DROP TRIGGER IF EXISTS update_user_profiles_updated_at ON user_profiles;
 DROP TRIGGER IF EXISTS update_donation_items_updated_at ON donation_items;
@@ -21,7 +40,7 @@ DROP FUNCTION IF EXISTS public.update_updated_at_column();
 DROP FUNCTION IF EXISTS public.is_admin(UUID);
 DROP FUNCTION IF EXISTS public.ensure_single_primary_address();
 
--- Drop tables (CASCADE removes policies, triggers, indexes)
+-- Drop tables (CASCADE removes remaining dependencies)
 DROP TABLE IF EXISTS item_requests CASCADE;
 DROP TABLE IF EXISTS donation_items CASCADE;
 DROP TABLE IF EXISTS user_addresses CASCADE;
@@ -128,15 +147,6 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- Admin check function (SECURITY DEFINER to bypass RLS)
-CREATE OR REPLACE FUNCTION public.is_admin(user_id UUID)
-RETURNS BOOLEAN AS $$
-  SELECT EXISTS (
-    SELECT 1 FROM public.user_profiles 
-    WHERE id = user_id AND role = 'admin'::user_role
-  );
-$$ LANGUAGE sql SECURITY DEFINER STABLE;
-
 -- Auto-create user profile on signup
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
@@ -164,6 +174,16 @@ BEGIN
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
+
+-- Admin check function (SECURITY DEFINER to bypass RLS)
+-- NOTE: Created after tables exist to avoid "relation does not exist" error
+CREATE OR REPLACE FUNCTION public.is_admin(user_id UUID)
+RETURNS BOOLEAN AS $$
+  SELECT EXISTS (
+    SELECT 1 FROM public.user_profiles 
+    WHERE id = user_id AND role = 'admin'::user_role
+  );
+$$ LANGUAGE sql SECURITY DEFINER STABLE;
 
 -- ============================================
 -- STEP 5: CREATE TRIGGERS
