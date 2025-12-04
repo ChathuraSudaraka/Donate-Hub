@@ -7,7 +7,7 @@ import ItemDetail from './pages/ItemDetail'
 import Contact from './pages/Contact'
 import Login from './pages/Login'
 import SignUp from './pages/SignUp'
-import RequestItem from './pages/RequestItem'
+import DonateItems from './pages/DonateItems'
 import AdminPanel from './pages/AdminPanel'
 import Profile from './pages/Profile'
 
@@ -23,7 +23,7 @@ function App() {
             <Route path="contact" element={<Contact />} />
             <Route path="login" element={<Login />} />
             <Route path="signup" element={<SignUp />} />
-            <Route path="request" element={<RequestItem />} />
+            <Route path="donate" element={<DonateItems />} />
             <Route path="admin" element={<AdminPanel />} />
             <Route path="profile" element={<Profile />} />
           </Route>

@@ -3,7 +3,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../contexts/AuthContext'
-import type { DonationItem, ItemCategory } from '../types/database'
+import type { DonationItem, ItemCategory, UserAddress } from '../types/database'
 
 const countries = [
   { value: 'Sri Lanka', flag: '🇱🇰' },
@@ -26,6 +26,9 @@ export default function ItemDetail() {
   // Modal state
   const [showModal, setShowModal] = useState(false)
   const [submitting, setSubmitting] = useState(false)
+  const [addresses, setAddresses] = useState<UserAddress[]>([])
+  const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null)
+  const [showNewAddressForm, setShowNewAddressForm] = useState(false)
   const [requestData, setRequestData] = useState({
     quantity: 1,
     description: '',
@@ -44,9 +47,16 @@ export default function ItemDetail() {
     }
   }, [id])
 
-  // Pre-fill shipping from profile
+  // Fetch user addresses
   useEffect(() => {
-    if (profile) {
+    if (user) {
+      fetchAddresses()
+    }
+  }, [user])
+
+  // Pre-fill shipping from profile when no addresses
+  useEffect(() => {
+    if (profile && addresses.length === 0) {
       setRequestData(prev => ({
         ...prev,
         shipping_name: profile.name || '',
@@ -58,7 +68,35 @@ export default function ItemDetail() {
         shipping_country: profile.country || 'Sri Lanka'
       }))
     }
-  }, [profile])
+  }, [profile, addresses])
+
+  // Auto-select primary address
+  useEffect(() => {
+    const primary = addresses.find(a => a.is_primary)
+    if (primary) {
+      setSelectedAddressId(primary.id)
+    } else if (addresses.length > 0) {
+      setSelectedAddressId(addresses[0].id)
+    }
+  }, [addresses])
+
+  const fetchAddresses = async () => {
+    if (!user) return
+    
+    try {
+      const { data, error } = await supabase
+        .from('user_addresses')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('is_primary', { ascending: false })
+        .order('created_at', { ascending: false })
+
+      if (error) throw error
+      setAddresses(data as UserAddress[] || [])
+    } catch (error) {
+      console.error('Error fetching addresses:', error)
+    }
+  }
 
   const fetchItem = async () => {
     setLoading(true)
@@ -95,7 +133,33 @@ export default function ItemDetail() {
     e.preventDefault()
     if (!user || !item) return
 
-    if (!requestData.shipping_address || !requestData.shipping_city || !requestData.shipping_phone) {
+    // Get shipping data from selected address or form
+    let shippingData = {
+      shipping_name: requestData.shipping_name,
+      shipping_phone: requestData.shipping_phone,
+      shipping_address: requestData.shipping_address,
+      shipping_city: requestData.shipping_city,
+      shipping_state: requestData.shipping_state,
+      shipping_zip: requestData.shipping_zip,
+      shipping_country: requestData.shipping_country
+    }
+
+    if (selectedAddressId && !showNewAddressForm) {
+      const selectedAddress = addresses.find(a => a.id === selectedAddressId)
+      if (selectedAddress) {
+        shippingData = {
+          shipping_name: selectedAddress.name,
+          shipping_phone: selectedAddress.phone,
+          shipping_address: selectedAddress.address,
+          shipping_city: selectedAddress.city,
+          shipping_state: selectedAddress.state || '',
+          shipping_zip: selectedAddress.zip_code || '',
+          shipping_country: selectedAddress.country
+        }
+      }
+    }
+
+    if (!shippingData.shipping_address || !shippingData.shipping_city || !shippingData.shipping_phone) {
       toast.error('Please fill in all required shipping fields')
       return
     }
@@ -111,13 +175,7 @@ export default function ItemDetail() {
         quantity: requestData.quantity,
         description: requestData.description || `Requesting ${item.name}`,
         status: 'pending',
-        shipping_name: requestData.shipping_name,
-        shipping_phone: requestData.shipping_phone,
-        shipping_address: requestData.shipping_address,
-        shipping_city: requestData.shipping_city,
-        shipping_state: requestData.shipping_state,
-        shipping_zip: requestData.shipping_zip,
-        shipping_country: requestData.shipping_country
+        ...shippingData
       })
 
       if (error) throw error
@@ -135,6 +193,7 @@ export default function ItemDetail() {
         shipping_zip: profile?.zip_code || '',
         shipping_country: profile?.country || 'Sri Lanka'
       })
+      setShowNewAddressForm(false)
     } catch (error) {
       console.error('Error submitting request:', error)
       toast.error('Failed to submit request')
@@ -428,97 +487,171 @@ export default function ItemDetail() {
 
               {/* Shipping Address */}
               <div className="border-t pt-5">
-                <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
-                  <span>📍</span> Delivery Address
-                </h3>
-                
-                <div className="space-y-3">
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label className="block text-xs font-medium text-gray-600 mb-1">Full Name *</label>
-                      <input
-                        type="text"
-                        required
-                        value={requestData.shipping_name}
-                        onChange={(e) => setRequestData(prev => ({ ...prev, shipping_name: e.target.value }))}
-                        className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-sm"
-                        placeholder="Your name"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-medium text-gray-600 mb-1">Phone *</label>
-                      <input
-                        type="tel"
-                        required
-                        value={requestData.shipping_phone}
-                        onChange={(e) => setRequestData(prev => ({ ...prev, shipping_phone: e.target.value }))}
-                        className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-sm"
-                        placeholder="+94 77 123 4567"
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-medium text-gray-600 mb-1">Street Address *</label>
-                    <input
-                      type="text"
-                      required
-                      value={requestData.shipping_address}
-                      onChange={(e) => setRequestData(prev => ({ ...prev, shipping_address: e.target.value }))}
-                      className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-sm"
-                      placeholder="123 Main Street, Apartment 4B"
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label className="block text-xs font-medium text-gray-600 mb-1">City *</label>
-                      <input
-                        type="text"
-                        required
-                        value={requestData.shipping_city}
-                        onChange={(e) => setRequestData(prev => ({ ...prev, shipping_city: e.target.value }))}
-                        className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-sm"
-                        placeholder="Colombo"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-medium text-gray-600 mb-1">Province/State</label>
-                      <input
-                        type="text"
-                        value={requestData.shipping_state}
-                        onChange={(e) => setRequestData(prev => ({ ...prev, shipping_state: e.target.value }))}
-                        className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-sm"
-                        placeholder="Western"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label className="block text-xs font-medium text-gray-600 mb-1">Postal Code</label>
-                      <input
-                        type="text"
-                        value={requestData.shipping_zip}
-                        onChange={(e) => setRequestData(prev => ({ ...prev, shipping_zip: e.target.value }))}
-                        className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-sm"
-                        placeholder="10100"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-medium text-gray-600 mb-1">Country</label>
-                      <select
-                        value={requestData.shipping_country}
-                        onChange={(e) => setRequestData(prev => ({ ...prev, shipping_country: e.target.value }))}
-                        className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-sm bg-white"
-                      >
-                        {countries.map(c => (
-                          <option key={c.value} value={c.value}>{c.flag} {c.value}</option>
-                        ))}
-                      </select>
-                    </div>
-                  </div>
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="font-semibold text-gray-800 flex items-center gap-2">
+                    <span>📍</span> Delivery Address
+                  </h3>
+                  {addresses.length > 0 && !showNewAddressForm && (
+                    <button
+                      type="button"
+                      onClick={() => setShowNewAddressForm(true)}
+                      className="text-xs text-emerald-600 hover:text-emerald-700 font-medium"
+                    >
+                      + Add New
+                    </button>
+                  )}
                 </div>
+                
+                {/* Saved Address Cards */}
+                {addresses.length > 0 && !showNewAddressForm ? (
+                  <div className="space-y-2 max-h-48 overflow-y-auto">
+                    {addresses.map((addr) => (
+                      <div
+                        key={addr.id}
+                        onClick={() => setSelectedAddressId(addr.id)}
+                        className={`relative p-3 rounded-xl border-2 cursor-pointer transition-all ${
+                          selectedAddressId === addr.id
+                            ? 'border-emerald-500 bg-emerald-50'
+                            : 'border-gray-200 hover:border-gray-300 bg-white'
+                        }`}
+                      >
+                        {/* Selection indicator */}
+                        <div className={`absolute top-3 right-3 w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                          selectedAddressId === addr.id
+                            ? 'border-emerald-500 bg-emerald-500'
+                            : 'border-gray-300'
+                        }`}>
+                          {selectedAddressId === addr.id && (
+                            <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                            </svg>
+                          )}
+                        </div>
+
+                        {/* Address content */}
+                        <div className="pr-8">
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="text-sm">
+                              {addr.label === 'Home' ? '🏠' : addr.label === 'Work' ? '🏢' : addr.label === 'School' ? '🏫' : '📍'}
+                            </span>
+                            <span className="font-medium text-gray-800 text-sm">{addr.label}</span>
+                            {addr.is_primary && (
+                              <span className="px-1.5 py-0.5 bg-emerald-100 text-emerald-700 text-[10px] font-medium rounded">Primary</span>
+                            )}
+                          </div>
+                          <p className="text-xs text-gray-600">{addr.name} • {addr.phone}</p>
+                          <p className="text-xs text-gray-500 mt-0.5">{addr.address}, {addr.city}, {addr.country}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  /* New Address Form */
+                  <div className="space-y-3">
+                    {addresses.length > 0 && (
+                      <button
+                        type="button"
+                        onClick={() => setShowNewAddressForm(false)}
+                        className="text-xs text-gray-600 hover:text-gray-800 mb-2 inline-flex items-center gap-1"
+                      >
+                        ← Use saved address
+                      </button>
+                    )}
+                    
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">Full Name *</label>
+                        <input
+                          type="text"
+                          required={showNewAddressForm || addresses.length === 0}
+                          value={requestData.shipping_name}
+                          onChange={(e) => setRequestData(prev => ({ ...prev, shipping_name: e.target.value }))}
+                          className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-sm"
+                          placeholder="Your name"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">Phone *</label>
+                        <input
+                          type="tel"
+                          required={showNewAddressForm || addresses.length === 0}
+                          value={requestData.shipping_phone}
+                          onChange={(e) => setRequestData(prev => ({ ...prev, shipping_phone: e.target.value }))}
+                          className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-sm"
+                          placeholder="+94 77 123 4567"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600 mb-1">Street Address *</label>
+                      <input
+                        type="text"
+                        required={showNewAddressForm || addresses.length === 0}
+                        value={requestData.shipping_address}
+                        onChange={(e) => setRequestData(prev => ({ ...prev, shipping_address: e.target.value }))}
+                        className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-sm"
+                        placeholder="123 Main Street, Apartment 4B"
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">City *</label>
+                        <input
+                          type="text"
+                          required={showNewAddressForm || addresses.length === 0}
+                          value={requestData.shipping_city}
+                          onChange={(e) => setRequestData(prev => ({ ...prev, shipping_city: e.target.value }))}
+                          className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-sm"
+                          placeholder="Colombo"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">Province/State</label>
+                        <input
+                          type="text"
+                          value={requestData.shipping_state}
+                          onChange={(e) => setRequestData(prev => ({ ...prev, shipping_state: e.target.value }))}
+                          className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-sm"
+                          placeholder="Western"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">Postal Code</label>
+                        <input
+                          type="text"
+                          value={requestData.shipping_zip}
+                          onChange={(e) => setRequestData(prev => ({ ...prev, shipping_zip: e.target.value }))}
+                          className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-sm"
+                          placeholder="10100"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">Country</label>
+                        <select
+                          value={requestData.shipping_country}
+                          onChange={(e) => setRequestData(prev => ({ ...prev, shipping_country: e.target.value }))}
+                          className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-sm bg-white"
+                        >
+                          {countries.map(c => (
+                            <option key={c.value} value={c.value}>{c.flag} {c.value}</option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* No saved addresses message */}
+                {addresses.length === 0 && (
+                  <p className="text-xs text-gray-500 mt-2">
+                    💡 Tip: <a href="/profile" className="text-emerald-600 hover:underline">Add addresses in your profile</a> for faster checkout.
+                  </p>
+                )}
               </div>
 
               {/* Submit */}

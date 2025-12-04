@@ -5,13 +5,14 @@ import { useAuth } from '../contexts/AuthContext'
 import { supabase } from '../lib/supabase'
 import type { ItemRequest, DonationItem, ItemCategory, RequestStatus } from '../types/database'
 
-type TabType = 'requests' | 'items' | 'add-item'
+type TabType = 'requests' | 'donations' | 'items' | 'add-item'
 
 export default function AdminPanel() {
   const { user, isAdmin, loading: authLoading } = useAuth()
   const [activeTab, setActiveTab] = useState<TabType>('requests')
   const [requests, setRequests] = useState<ItemRequest[]>([])
   const [items, setItems] = useState<DonationItem[]>([])
+  const [pendingDonations, setPendingDonations] = useState<DonationItem[]>([])
   const [loading, setLoading] = useState(true)
   const [expandedRequest, setExpandedRequest] = useState<string | null>(null)
 
@@ -32,7 +33,7 @@ export default function AdminPanel() {
 
   const fetchData = async () => {
     setLoading(true)
-    await Promise.all([fetchRequests(), fetchItems()])
+    await Promise.all([fetchRequests(), fetchItems(), fetchPendingDonations()])
     setLoading(false)
   }
 
@@ -50,17 +51,69 @@ export default function AdminPanel() {
     }
   }
 
+  const fetchPendingDonations = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('donation_items')
+        .select('*')
+        .eq('is_available', false)
+        .order('created_at', { ascending: false })
+
+      if (error) throw error
+      setPendingDonations(data as DonationItem[])
+    } catch (error) {
+      console.error('Error fetching pending donations:', error)
+    }
+  }
+
   const fetchItems = async () => {
     try {
       const { data, error } = await supabase
         .from('donation_items')
         .select('*')
+        .eq('is_available', true)
         .order('created_at', { ascending: false })
 
       if (error) throw error
       setItems(data as DonationItem[])
     } catch (error) {
       console.error('Error fetching items:', error)
+    }
+  }
+
+  const approveDonation = async (itemId: string) => {
+    try {
+      const { error } = await supabase
+        .from('donation_items')
+        .update({ is_available: true })
+        .eq('id', itemId)
+
+      if (error) throw error
+      
+      toast.success('Donation approved and now visible!')
+      fetchData()
+    } catch (error) {
+      console.error('Error approving donation:', error)
+      toast.error('Failed to approve donation')
+    }
+  }
+
+  const rejectDonation = async (itemId: string) => {
+    if (!confirm('Are you sure you want to reject and delete this donation?')) return
+
+    try {
+      const { error } = await supabase
+        .from('donation_items')
+        .delete()
+        .eq('id', itemId)
+
+      if (error) throw error
+      
+      toast.success('Donation rejected')
+      fetchData()
+    } catch (error) {
+      console.error('Error rejecting donation:', error)
+      toast.error('Failed to reject donation')
     }
   }
 
@@ -195,10 +248,10 @@ export default function AdminPanel() {
           </div>
 
           {/* Tabs */}
-          <div className="flex space-x-1 -mb-px">
+          <div className="flex space-x-1 -mb-px overflow-x-auto">
             <button
               onClick={() => setActiveTab('requests')}
-              className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
+              className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
                 activeTab === 'requests'
                   ? 'border-emerald-500 text-emerald-600'
                   : 'border-transparent text-gray-500 hover:text-gray-700'
@@ -212,8 +265,23 @@ export default function AdminPanel() {
               )}
             </button>
             <button
+              onClick={() => setActiveTab('donations')}
+              className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
+                activeTab === 'donations'
+                  ? 'border-emerald-500 text-emerald-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              Pending Donations
+              {pendingDonations.length > 0 && (
+                <span className="ml-2 px-2 py-0.5 bg-orange-100 text-orange-700 rounded-full text-xs font-semibold">
+                  {pendingDonations.length}
+                </span>
+              )}
+            </button>
+            <button
               onClick={() => setActiveTab('items')}
-              className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
+              className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
                 activeTab === 'items'
                   ? 'border-emerald-500 text-emerald-600'
                   : 'border-transparent text-gray-500 hover:text-gray-700'
@@ -223,7 +291,7 @@ export default function AdminPanel() {
             </button>
             <button
               onClick={() => setActiveTab('add-item')}
-              className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
+              className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
                 activeTab === 'add-item'
                   ? 'border-emerald-500 text-emerald-600'
                   : 'border-transparent text-gray-500 hover:text-gray-700'
@@ -381,6 +449,97 @@ export default function AdminPanel() {
                       )}
                     </div>
                   ))
+                )}
+              </div>
+            )}
+
+            {/* Pending Donations Tab */}
+            {activeTab === 'donations' && (
+              <div className="space-y-4">
+                {pendingDonations.length === 0 ? (
+                  <div className="text-center py-16 bg-white rounded-xl">
+                    <div className="text-5xl mb-3">✅</div>
+                    <h3 className="text-lg font-semibold text-gray-800">No pending donations</h3>
+                    <p className="text-gray-500 text-sm">All donations have been reviewed</p>
+                  </div>
+                ) : (
+                  pendingDonations.map((donation) => {
+                    // Parse donor info from description
+                    const descParts = donation.description.split('---')
+                    const mainDesc = descParts[0]?.trim() || donation.description
+                    const donorInfo = descParts[1] || ''
+                    
+                    return (
+                      <div key={donation.id} className="bg-white rounded-xl shadow-sm overflow-hidden border-l-4 border-orange-400">
+                        <div className="p-5">
+                          <div className="flex items-start gap-4">
+                            {/* Icon */}
+                            <div className="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center text-2xl flex-shrink-0">
+                              {getCategoryEmoji(donation.category)}
+                            </div>
+
+                            {/* Content */}
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 flex-wrap mb-1">
+                                <h3 className="font-semibold text-gray-800 text-lg">{donation.name}</h3>
+                                <span className="px-2 py-0.5 bg-orange-100 text-orange-700 rounded-full text-xs font-medium">
+                                  Pending Review
+                                </span>
+                              </div>
+                              
+                              <p className="text-gray-600 text-sm mb-3">{mainDesc}</p>
+                              
+                              <div className="flex flex-wrap gap-4 text-sm text-gray-500 mb-3">
+                                <span className="flex items-center gap-1">
+                                  <span className="font-medium">Qty:</span> {donation.quantity}
+                                </span>
+                                <span className="flex items-center gap-1">
+                                  <span className="font-medium">Condition:</span> {donation.condition || 'Good'}
+                                </span>
+                                <span className="flex items-center gap-1">
+                                  <span className="font-medium">Submitted:</span> {new Date(donation.created_at).toLocaleDateString()}
+                                </span>
+                              </div>
+
+                              {/* Donor Info */}
+                              {donorInfo && (
+                                <div className="bg-gray-50 rounded-lg p-3 text-sm">
+                                  <p className="font-medium text-gray-700 mb-1">📞 Donor Contact:</p>
+                                  <div className="text-gray-600 whitespace-pre-line text-xs">
+                                    {donorInfo.trim().split('\n').map((line, i) => (
+                                      <p key={i}>{line.replace(/^(Donor|Phone|Email|Location):/, (m) => `**${m}**`)}</p>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+
+                            {/* Actions */}
+                            <div className="flex flex-col gap-2 flex-shrink-0">
+                              <button
+                                onClick={() => approveDonation(donation.id)}
+                                className="px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 transition-colors flex items-center gap-2"
+                              >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                </svg>
+                                Approve
+                              </button>
+                              <button
+                                onClick={() => rejectDonation(donation.id)}
+                                className="px-4 py-2 bg-red-100 text-red-700 rounded-lg text-sm font-medium hover:bg-red-200 transition-colors flex items-center gap-2"
+                              >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                                Reject
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )
+                  })
                 )}
               </div>
             )}

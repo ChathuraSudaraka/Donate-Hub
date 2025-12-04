@@ -61,14 +61,14 @@ export default function Navbar() {
             
             {user && (
               <Link
-                to="/request"
+                to="/donate"
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  isActive('/request') 
+                  isActive('/donate') 
                     ? 'bg-emerald-50 text-emerald-700' 
                     : 'text-gray-600 hover:bg-gray-100 hover:text-gray-800'
                 }`}
               >
-                Request Item
+                Donate Items
               </Link>
             )}
           </div>
@@ -200,15 +200,15 @@ export default function Navbar() {
               {user && (
                 <>
                   <Link
-                    to="/request"
+                    to="/donate"
                     onClick={() => setIsMenuOpen(false)}
                     className={`px-4 py-2.5 rounded-lg text-sm font-medium transition-colors ${
-                      isActive('/request') 
+                      isActive('/donate') 
                         ? 'bg-emerald-50 text-emerald-700' 
                         : 'text-gray-600 hover:bg-gray-100'
                     }`}
                   >
-                    Request Item
+                    Donate Items
                   </Link>
                   <Link
                     to="/profile"
