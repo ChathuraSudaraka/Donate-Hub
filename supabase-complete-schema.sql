@@ -131,10 +131,20 @@ BEGIN
   VALUES (
     NEW.id,
     COALESCE(NEW.email, ''),
-    COALESCE(NEW.raw_user_meta_data->>'name', split_part(COALESCE(NEW.email, 'user'), '@', 1)),
+    COALESCE(
+      NEW.raw_user_meta_data->>'name',
+      NEW.raw_user_meta_data->>'full_name',
+      split_part(COALESCE(NEW.email, 'user'), '@', 1)
+    ),
     'user'::user_role
   )
-  ON CONFLICT (id) DO NOTHING;
+  ON CONFLICT (id) DO UPDATE SET
+    name = COALESCE(
+      EXCLUDED.name,
+      NEW.raw_user_meta_data->>'name',
+      NEW.raw_user_meta_data->>'full_name',
+      user_profiles.name
+    );
   RETURN NEW;
 EXCEPTION WHEN OTHERS THEN
   RETURN NEW;
