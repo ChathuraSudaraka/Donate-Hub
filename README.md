@@ -1,73 +1,108 @@
-# React + TypeScript + Vite
+# DonateHub 🎁
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A platform for donating and requesting school supplies (books, pencils, and other school items) built with React, Vite, Tailwind CSS, and Supabase.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- **Home Page**: Landing page with information about the donation platform
+- **Items Page**: Browse available donation items by category (books, pencils, school supplies)
+- **Contact Page**: Contact form for inquiries
+- **Request Item**: Authenticated users can request items they need
+- **Admin Panel**: Admins can view/manage requests and add new items to inventory
 
-## React Compiler
+## Tech Stack
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- **Frontend**: React 19, TypeScript, Tailwind CSS v4
+- **Build Tool**: Vite
+- **Backend**: Supabase (Auth, Database, Storage)
+- **Notifications**: react-hot-toast
+- **Routing**: react-router-dom
 
-## Expanding the ESLint configuration
+## Getting Started
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+### Prerequisites
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+- Node.js 18+
+- A Supabase account
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+### Setup
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+1. **Clone and install dependencies:**
+   ```bash
+   npm install
+   ```
+
+2. **Set up Supabase:**
+   - Create a new Supabase project at [supabase.com](https://supabase.com)
+   - Copy your project URL and anon key
+
+3. **Configure environment variables:**
+   - Copy `.env.example` to `.env`
+   - Add your Supabase credentials:
+     ```
+     VITE_SUPABASE_URL=your_project_url
+     VITE_SUPABASE_ANON_KEY=your_anon_key
+     ```
+
+4. **Set up the database:**
+   - Go to your Supabase project's SQL Editor
+   - Run the contents of `supabase-schema.sql` to create tables and sample data
+
+5. **Start the development server:**
+   ```bash
+   npm run dev
+   ```
+
+### Creating an Admin User
+
+1. Sign up for an account through the app
+2. In Supabase SQL Editor, run:
+   ```sql
+   UPDATE user_profiles 
+   SET role = 'admin' 
+   WHERE email = 'your-email@example.com';
+   ```
+
+## Project Structure
+
+```
+src/
+├── components/
+│   ├── Footer.tsx
+│   ├── Layout.tsx
+│   └── Navbar.tsx
+├── contexts/
+│   └── AuthContext.tsx
+├── lib/
+│   └── supabase.ts
+├── pages/
+│   ├── AdminPanel.tsx
+│   ├── Contact.tsx
+│   ├── Home.tsx
+│   ├── Items.tsx
+│   ├── Login.tsx
+│   ├── RequestItem.tsx
+│   └── SignUp.tsx
+├── types/
+│   └── database.ts
+├── App.tsx
+├── main.tsx
+└── index.css
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## Database Schema
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+- **user_profiles**: User accounts with roles (user/admin)
+- **donation_items**: Available items for donation
+- **item_requests**: User requests for items
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+## Available Scripts
+
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm run preview` - Preview production build
+- `npm run lint` - Run ESLint
+
+## License
+
+MIT
