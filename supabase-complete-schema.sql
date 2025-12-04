@@ -1,23 +1,30 @@
 -- ============================================
 -- COMPLETE Supabase SQL Schema for Donate-Hub
--- Run this in your Supabase SQL Editor
+-- Run this ONCE in your Supabase SQL Editor
 -- ============================================
 
 -- ============================================
 -- STEP 1: CLEAN UP (Drop existing objects)
 -- ============================================
 
--- Drop triggers first (they depend on functions)
+-- Drop triggers first
 DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
+DROP TRIGGER IF EXISTS update_user_profiles_updated_at ON user_profiles;
+DROP TRIGGER IF EXISTS update_donation_items_updated_at ON donation_items;
+DROP TRIGGER IF EXISTS update_item_requests_updated_at ON item_requests;
+DROP TRIGGER IF EXISTS update_user_addresses_updated_at ON user_addresses;
+DROP TRIGGER IF EXISTS ensure_single_primary_address ON user_addresses;
 
 -- Drop functions
 DROP FUNCTION IF EXISTS public.handle_new_user();
 DROP FUNCTION IF EXISTS public.update_updated_at_column();
 DROP FUNCTION IF EXISTS public.is_admin(UUID);
+DROP FUNCTION IF EXISTS public.ensure_single_primary_address();
 
--- Drop tables (CASCADE will remove policies, triggers, indexes)
+-- Drop tables (CASCADE removes policies, triggers, indexes)
 DROP TABLE IF EXISTS item_requests CASCADE;
 DROP TABLE IF EXISTS donation_items CASCADE;
+DROP TABLE IF EXISTS user_addresses CASCADE;
 DROP TABLE IF EXISTS user_profiles CASCADE;
 
 -- Drop types
@@ -37,21 +44,35 @@ CREATE TYPE user_role AS ENUM ('user', 'admin');
 -- STEP 3: CREATE TABLES
 -- ============================================
 
--- User Profiles Table (with shipping address)
+-- User Profiles Table
 CREATE TABLE user_profiles (
   id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
   email TEXT NOT NULL,
   name TEXT NOT NULL,
   role user_role DEFAULT 'user'::user_role,
-  -- Contact Info
   phone TEXT,
-  -- Shipping Address
   address TEXT,
   city TEXT,
   state TEXT,
   zip_code TEXT,
   country TEXT DEFAULT 'Sri Lanka',
-  -- Timestamps
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- User Addresses Table (multiple addresses per user)
+CREATE TABLE user_addresses (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  label TEXT NOT NULL DEFAULT 'Home',
+  name TEXT NOT NULL,
+  phone TEXT NOT NULL,
+  address TEXT NOT NULL,
+  city TEXT NOT NULL,
+  state TEXT,
+  zip_code TEXT,
+  country TEXT DEFAULT 'Sri Lanka',
+  is_primary BOOLEAN DEFAULT false,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
@@ -66,6 +87,7 @@ CREATE TABLE donation_items (
   image_url TEXT,
   condition TEXT DEFAULT 'Good',
   is_available BOOLEAN DEFAULT true,
+  donor_id UUID REFERENCES auth.users(id) ON DELETE SET NULL,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
@@ -82,7 +104,6 @@ CREATE TABLE item_requests (
   description TEXT NOT NULL,
   status request_status DEFAULT 'pending'::request_status,
   admin_notes TEXT,
-  -- Shipping info snapshot (copied from user profile at time of request)
   shipping_name TEXT,
   shipping_phone TEXT,
   shipping_address TEXT,
@@ -90,7 +111,6 @@ CREATE TABLE item_requests (
   shipping_state TEXT,
   shipping_zip TEXT,
   shipping_country TEXT DEFAULT 'Sri Lanka',
-  -- Timestamps
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
@@ -132,6 +152,19 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
+-- Ensure only one primary address per user
+CREATE OR REPLACE FUNCTION public.ensure_single_primary_address()
+RETURNS TRIGGER AS $$
+BEGIN
+  IF NEW.is_primary = true THEN
+    UPDATE user_addresses 
+    SET is_primary = false 
+    WHERE user_id = NEW.user_id AND id != NEW.id;
+  END IF;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
 -- ============================================
 -- STEP 5: CREATE TRIGGERS
 -- ============================================
@@ -149,16 +182,26 @@ CREATE TRIGGER update_item_requests_updated_at
   BEFORE UPDATE ON item_requests
   FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
 
+CREATE TRIGGER update_user_addresses_updated_at
+  BEFORE UPDATE ON user_addresses
+  FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
+
 -- Auto-create profile trigger
 CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
+
+-- Single primary address trigger
+CREATE TRIGGER ensure_single_primary_address
+  BEFORE INSERT OR UPDATE ON user_addresses
+  FOR EACH ROW EXECUTE FUNCTION public.ensure_single_primary_address();
 
 -- ============================================
 -- STEP 6: ENABLE ROW LEVEL SECURITY
 -- ============================================
 
 ALTER TABLE user_profiles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE user_addresses ENABLE ROW LEVEL SECURITY;
 ALTER TABLE donation_items ENABLE ROW LEVEL SECURITY;
 ALTER TABLE item_requests ENABLE ROW LEVEL SECURITY;
 
@@ -183,14 +226,39 @@ CREATE POLICY "Admins can view all profiles"
   ON user_profiles FOR SELECT
   USING (public.is_admin(auth.uid()));
 
--- Donation Items Policies
-CREATE POLICY "Anyone can view available donation items"
-  ON donation_items FOR SELECT
-  USING (is_available = true OR public.is_admin(auth.uid()));
+-- User Addresses Policies
+CREATE POLICY "Users can view their own addresses"
+  ON user_addresses FOR SELECT
+  USING (auth.uid() = user_id);
 
-CREATE POLICY "Admins can insert donation items"
+CREATE POLICY "Users can insert their own addresses"
+  ON user_addresses FOR INSERT
+  WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can update their own addresses"
+  ON user_addresses FOR UPDATE
+  USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can delete their own addresses"
+  ON user_addresses FOR DELETE
+  USING (auth.uid() = user_id);
+
+-- Donation Items Policies
+CREATE POLICY "Anyone can view available items"
+  ON donation_items FOR SELECT
+  USING (is_available = true);
+
+CREATE POLICY "Users can view own donations"
+  ON donation_items FOR SELECT
+  USING (donor_id = auth.uid());
+
+CREATE POLICY "Admins can view all items"
+  ON donation_items FOR SELECT
+  USING (public.is_admin(auth.uid()));
+
+CREATE POLICY "Users can insert donation items"
   ON donation_items FOR INSERT
-  WITH CHECK (public.is_admin(auth.uid()));
+  WITH CHECK (auth.uid() IS NOT NULL);
 
 CREATE POLICY "Admins can update donation items"
   ON donation_items FOR UPDATE
@@ -214,13 +282,16 @@ CREATE POLICY "Admins can update requests"
   USING (public.is_admin(auth.uid()));
 
 -- ============================================
--- STEP 8: CREATE INDEXES FOR PERFORMANCE
+-- STEP 8: CREATE INDEXES
 -- ============================================
 
 CREATE INDEX idx_user_profiles_email ON user_profiles(email);
 CREATE INDEX idx_user_profiles_role ON user_profiles(role);
+CREATE INDEX idx_user_addresses_user_id ON user_addresses(user_id);
+CREATE INDEX idx_user_addresses_primary ON user_addresses(user_id, is_primary);
 CREATE INDEX idx_donation_items_category ON donation_items(category);
 CREATE INDEX idx_donation_items_available ON donation_items(is_available);
+CREATE INDEX idx_donation_items_donor_id ON donation_items(donor_id);
 CREATE INDEX idx_item_requests_user_id ON item_requests(user_id);
 CREATE INDEX idx_item_requests_status ON item_requests(status);
 
@@ -258,8 +329,5 @@ INSERT INTO donation_items (name, description, category, quantity, condition, is
 -- ============================================
 -- DONE! Your database is now set up.
 -- ============================================
-
--- To verify, run these queries:
--- SELECT * FROM user_profiles;
--- SELECT * FROM donation_items;
--- SELECT COUNT(*) FROM auth.users;
+-- To make a user admin, run:
+-- UPDATE user_profiles SET role = 'admin' WHERE email = 'your-email@example.com';
