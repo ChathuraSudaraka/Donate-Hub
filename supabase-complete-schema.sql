@@ -7,40 +7,16 @@
 -- STEP 1: CLEAN UP (Drop existing objects)
 -- ============================================
 
--- Drop policies first (they depend on functions)
-DROP POLICY IF EXISTS "Users can view their own profile" ON user_profiles;
-DROP POLICY IF EXISTS "Users can insert their own profile" ON user_profiles;
-DROP POLICY IF EXISTS "Users can update their own profile" ON user_profiles;
-DROP POLICY IF EXISTS "Admins can view all profiles" ON user_profiles;
-DROP POLICY IF EXISTS "Users can view their own addresses" ON user_addresses;
-DROP POLICY IF EXISTS "Users can insert their own addresses" ON user_addresses;
-DROP POLICY IF EXISTS "Users can update their own addresses" ON user_addresses;
-DROP POLICY IF EXISTS "Users can delete their own addresses" ON user_addresses;
-DROP POLICY IF EXISTS "Anyone can view available items" ON donation_items;
-DROP POLICY IF EXISTS "Users can view own donations" ON donation_items;
-DROP POLICY IF EXISTS "Admins can view all items" ON donation_items;
-DROP POLICY IF EXISTS "Users can insert donation items" ON donation_items;
-DROP POLICY IF EXISTS "Admins can update donation items" ON donation_items;
-DROP POLICY IF EXISTS "Admins can delete donation items" ON donation_items;
-DROP POLICY IF EXISTS "Users can view their own requests" ON item_requests;
-DROP POLICY IF EXISTS "Users can create requests" ON item_requests;
-DROP POLICY IF EXISTS "Admins can update requests" ON item_requests;
-
--- Drop triggers
+-- Drop trigger on auth.users first (always exists)
 DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
-DROP TRIGGER IF EXISTS update_user_profiles_updated_at ON user_profiles;
-DROP TRIGGER IF EXISTS update_donation_items_updated_at ON donation_items;
-DROP TRIGGER IF EXISTS update_item_requests_updated_at ON item_requests;
-DROP TRIGGER IF EXISTS update_user_addresses_updated_at ON user_addresses;
-DROP TRIGGER IF EXISTS ensure_single_primary_address ON user_addresses;
 
--- Drop functions
+-- Drop functions (no table dependency for DROP)
 DROP FUNCTION IF EXISTS public.handle_new_user();
 DROP FUNCTION IF EXISTS public.update_updated_at_column();
 DROP FUNCTION IF EXISTS public.is_admin(UUID);
 DROP FUNCTION IF EXISTS public.ensure_single_primary_address();
 
--- Drop tables (CASCADE removes remaining dependencies)
+-- Drop tables with CASCADE (this removes all policies, triggers, indexes automatically)
 DROP TABLE IF EXISTS item_requests CASCADE;
 DROP TABLE IF EXISTS donation_items CASCADE;
 DROP TABLE IF EXISTS user_addresses CASCADE;
