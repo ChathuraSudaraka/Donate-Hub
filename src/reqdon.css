@@ -1,0 +1,95 @@
+
+
+/* Container */
+.form-container {
+  max-width: 650px;
+  margin: 50px auto;
+  padding: 35px;
+  border-radius: 14px;
+  background: #ffffff;
+  border: 1px solid #e1e4e8;
+  box-shadow: 0 6px 25px rgba(0, 0, 0, 0.06);
+    background-color: var(--bg-primary);
+  color: var(--text-primary);
+  min-height: 100vh;
+}
+
+
+
+/* Title */
+.form-title {
+  text-align: center;
+  font-size: 26px;
+  font-weight: 700;
+  margin-bottom: 25px;
+  color: #ffffff;
+}
+
+/* Form layout */
+.form-group {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 20px;
+}
+
+/* Labels */
+.form-label {
+  font-weight: 600;
+  margin-bottom: 6px;
+  color: #4a5568;
+}
+
+/* Inputs */
+.form-input,
+.form-textarea,
+.form-select {
+  padding: 13px 15px;
+  border-radius: 10px;
+  border: 1px solid #cbd5e0;
+  font-size: 15px;
+  transition: all 0.2s ease;
+}
+
+.form-input:focus,
+.form-textarea:focus,
+.form-select:focus {
+  border-color: #3182ce;
+  box-shadow: 0 0 0 3px rgba(49, 130, 206, 0.2);
+  outline: none;
+}
+
+/* Textarea */
+.form-textarea {
+  min-height: 110px;
+  resize: vertical;
+}
+
+/* Button */
+.form-button {
+  width: 100%;
+  padding: 15px;
+  background: #2563eb;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 17px;
+  font-weight: 600;
+  transition: 0.2s;
+}
+
+.form-button:hover {
+  background: #1e4ed8;
+}
+
+/* Success Box */
+.success-box {
+  text-align: center;
+  padding: 25px;
+  background: #d1fae5;
+  border-radius: 10px;
+  border: 1px solid #a7f3d0;
+  color: #065f46;
+  font-size: 18px;
+  font-weight: 600;
+}

@@ -1,0 +1,341 @@
+/* ===== SERVICES SECTION STYLES ===== */
+
+.services-container {
+  background-color: var(--bg-primary);
+  padding: 80px 0;
+  margin-top: 50px;
+  color: var(--text-primary);
+}
+
+#Classic_Collectors_Hub {
+  font-family: 'Georgia', 'Times New Roman', serif;
+  font-size: clamp(2rem, 5vw, 2.5rem);
+  font-weight: 700;
+  color: var(--text-primary);
+  text-align: center;
+  margin-bottom: 50px;
+  position: relative;
+  padding-bottom: 20px;
+}
+
+#Classic_Collectors_Hub::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100px;
+  height: 3px;
+  background: var(--gradient-eco);
+  border-radius: 2px;
+}
+
+/* Service Cards */
+.services-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  gap: 30px;
+  margin-top: 40px;
+}
+
+.service-card {
+  background: var(--bg-secondary);
+  border-radius: 15px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  border: 1px solid var(--border-color);
+  box-shadow: 0 4px 15px var(--shadow-light);
+  height: fit-content;
+}
+
+.service-card:hover {
+  transform: translateY(-10px);
+  box-shadow: 0 15px 30px var(--shadow-medium);
+  border-color: var(--border-accent);
+}
+
+.service-card-image {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.service-card:hover .service-card-image {
+  transform: scale(1.05);
+}
+
+.service-card-body {
+  padding: 25px;
+}
+
+.service-card-title {
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 15px;
+  line-height: 1.3;
+}
+
+.service-card-text {
+  color: var(--text-secondary);
+  line-height: 1.6;
+  font-size: 1rem;
+  margin-bottom: 20px;
+}
+
+.service-card-button {
+  background: var(--gradient-eco);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 25px;
+  font-weight: 600;
+  text-decoration: none;
+  display: inline-block;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-size: 0.9rem;
+}
+
+.service-card-button:hover {
+  background: var(--green-secondary);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 15px var(--shadow-medium);
+  color: white;
+  text-decoration: none;
+}
+
+#card_04_image_services {
+  /*all card image*/
+  width: 350px;
+  height: 150px;
+  align-self: center;
+}
+
+#card_04_services {
+  /* all cards*/
+  width: 350px;
+  height: 280px;
+  margin-bottom: 40px;
+  border-left-width: none;
+}
+
+#card_05_image_services {
+  /*all card image*/
+  width: 350px;
+  height: 150px;
+  align-self: center;
+}
+
+#card_05_services {
+  /* all cards*/
+  width: 350px;
+  height: 280px;
+  margin-bottom: 40px;
+  border-left-width: none;
+}
+
+#card_06_image_services {
+  /*all card image*/
+  width: 350px;
+  height: 150px;
+  align-self: center;
+}
+
+#card_06_services {
+  /* all cards*/
+  width: 350px;
+  height: 280px;
+  margin-bottom: 40px;
+  border-left-width: none;
+}
+
+#button_services {
+  /*all buttons in the card*/
+  font-family: impact;
+  font-size: 23px;
+  margin-left: 100px;
+  margin-top: 10px;
+}
+
+#The_Tyres {
+  /*only tyer words*/
+  margin-left: 115px;
+  font-family: impact;
+  font-size: 27px;
+}
+
+#Vidhuru_Item {
+  /*only vidhuru item*/
+  margin-left: 102px;
+  font-family: impact;
+  font-size: 27px;
+}
+
+#Plastic_Item {
+  /*only plastic item*/
+  margin-left: 90px;
+  font-family: impact;
+  font-size: 27px;
+}
+
+#Iron_bars {
+  /*only iron bars*/
+  margin-left: 100px;
+  font-family: impact;
+  font-size: 27px;
+}
+
+#Electronic_Device {
+  /*only add css for Electronic Device*/
+  margin-left: 60px;
+  font-family: impact;
+  font-size: 27px;
+}
+
+#book {
+  /*only boos*/
+  margin-left: 110px;
+  font-family: impact;
+  font-size: 27px;
+}
+
+#card_body_services {
+  /*add css for all card body*/
+  background-color: rgb(225, 237, 237);
+  height: 50px;
+}
+
+#light_services {
+  color: black; /*add css for bulb icon*/
+  font-size: 36px;
+  border-bottom: 3px solid black;
+}
+
+/* Feature highlights */
+.feature-highlight {
+  padding: 30px 20px;
+  transition: all 0.3s ease;
+  border-radius: 15px;
+}
+
+.feature-highlight:hover {
+  background: var(--bg-secondary);
+  transform: translateY(-5px);
+  box-shadow: 0 10px 25px var(--shadow-light);
+}
+
+/* Dark theme adjustments */
+[data-theme="dark"] .service-card {
+  background: var(--bg-secondary);
+  border-color: var(--border-color);
+}
+
+[data-theme="dark"] .service-card:hover {
+  border-color: var(--border-accent);
+  box-shadow: 0 15px 30px rgba(52, 211, 153, 0.2);
+}
+
+[data-theme="dark"] .feature-highlight:hover {
+  background: var(--bg-tertiary);
+  box-shadow: 0 10px 25px rgba(52, 211, 153, 0.15);
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .services-container {
+    padding: 60px 0;
+  }
+  
+  #Classic_Collectors_Hub {
+    font-size: 2rem;
+    margin-bottom: 30px;
+  }
+  
+  .services-grid {
+    gap: 20px;
+  }
+  
+  .service-card {
+    margin-bottom: 20px;
+  }
+  
+  .service-card-image {
+    height: 180px;
+  }
+  
+  .service-card-body {
+    padding: 20px;
+  }
+}
+
+@media (max-width: 576px) {
+  .services-container {
+    padding: 40px 0;
+  }
+  
+  #Classic_Collectors_Hub {
+    font-size: 1.8rem;
+  }
+  
+  .service-card-image {
+    height: 160px;
+  }
+  
+  .service-card-body {
+    padding: 15px;
+  }
+  
+  .service-card-title {
+    font-size: 1.2rem;
+  }
+  
+  .service-card-text {
+    font-size: 0.9rem;
+  }
+}
+
+/* Animation for service cards */
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.service-card {
+  animation: slideInUp 0.6s ease-out;
+}
+
+.service-card:nth-child(1) { animation-delay: 0.1s; }
+.service-card:nth-child(2) { animation-delay: 0.2s; }
+.service-card:nth-child(3) { animation-delay: 0.3s; }
+.service-card:nth-child(4) { animation-delay: 0.4s; }
+.service-card:nth-child(5) { animation-delay: 0.5s; }
+.service-card:nth-child(6) { animation-delay: 0.6s; }
+
+/* Accessibility */
+.service-card-button:focus {
+  outline: 3px solid var(--green-primary);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .service-card {
+    animation: none;
+  }
+  
+  .service-card:hover {
+    transform: none;
+  }
+  
+  .feature-highlight:hover {
+    transform: none;
+  }
+}

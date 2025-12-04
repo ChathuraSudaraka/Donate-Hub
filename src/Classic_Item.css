@@ -1,0 +1,223 @@
+#information_box_classicItem {
+  background-color: antiquewhite;
+}
+
+#Main_topic_classicItem {
+  font-size: 40px;
+  font-family: Times;
+
+  margin-top: 40px;
+}
+
+#Item_Name {
+  font-size: 20px;
+  font-family: Times;
+}
+
+#input_01_classicItem {
+  width: 300px;
+}
+
+#count_classicItem {
+  font-size: 20px;
+  font-family: Times;
+  padding-bottom: 4px;
+}
+
+#Enter_classicItem {
+  padding: 8px 20px 8px 20px;
+  font-size: 17px;
+  margin-top: 10px;
+  font-family: Times;
+}
+
+#one_classicItem {
+  border-radius: 0px;
+  width: 50px;
+}
+
+#two_classicItem {
+  border-radius: 0px;
+  width: 50px;
+}
+
+#three_classicItem {
+  border-radius: 0px;
+  width: 50px;
+}
+
+#fore_classicItem {
+  border-radius: 0px;
+  width: 50px;
+}
+
+#five_classicItem {
+  border-radius: 0px;
+  width: 50px;
+}
+
+#six_classicItem {
+  border-radius: 0px;
+  width: 50px;
+}
+
+#seven_classicItem {
+  border-radius: 0px;
+  width: 50px;
+}
+
+#eight_classicItem {
+  border-radius: 0px;
+  width: 50px;
+}
+
+#nine_classicItem {
+  border-radius: 0px;
+  width: 50px;
+}
+
+#clear_classicItem {
+  border-radius: 0px;
+  width: 50px;
+}
+
+#zero_classicItem {
+  border-radius: 0px;
+  width: 50px;
+}
+
+#submit_classicItem {
+  border-radius: 0px;
+  width: 50px;
+}
+
+#contact_classicItem {
+  font-size: 20px;
+  font-family: Times;
+  margin-top: 15px;
+}
+
+#input_02_classicItem {
+  width: 300px;
+}
+
+#location_classicItem {
+  font-size: 20px;
+  font-family: Times;
+  margin-top: 15px;
+}
+
+#input_03_classicItem {
+  width: 300px;
+}
+
+#massage {
+  font-size: 20px;
+  font-family: Times;
+}
+
+#submit_button_classicItem {
+  margin-top: 20px;
+  margin-left: 240px;
+  margin-bottom: 20px;
+  font-size: 22px;
+  font-family: Times;
+  padding-left: 20px;
+  padding-right: 20px;
+}
+
+#card_01 {
+  background-color: rgb(230, 235, 239);
+}
+
+#countofitem_classicItem {
+  font-size: 20px;
+  font-family: Times;
+  padding-bottom: 4px;
+  padding-right: 3px;
+  margin-bottom: 2px solid black;
+  margin-left: 10px;
+  border-bottom: 1px solid black;
+}
+
+#calculater_classicItem {
+  border: 2px solid black;
+  width: 153.5px;
+}
+
+#card_01 {
+  width: 600px;
+  margin-left: 60px;
+  margin-top: 40px;
+}
+
+#light_classicItem {
+  font-size: 28px;
+  color: black;
+}
+
+#item_01 {
+  font-family: Times;
+  font-size: 25px;
+}
+
+#item_02 {
+  font-family: Times;
+  font-size: 25px;
+}
+
+#item_03 {
+  font-family: Times;
+  font-size: 25px;
+}
+
+#item_04 {
+  font-family: Times;
+  font-size: 25px;
+}
+
+#Item_05 {
+  font-family: Times;
+  font-size: 25px;
+}
+
+#list_01_classicItem {
+  font-family: Times;
+  font-size: 25px;
+}
+
+#list_02_classicItem {
+  font-family: Times;
+  font-size: 25px;
+}
+
+#list_03_classicItem {
+  font-family: Times;
+  font-size: 25px;
+}
+
+#list_04_classicItem {
+  font-family: Times;
+  font-size: 25px;
+}
+
+#list_05_classicItem {
+  font-family: Times;
+  font-size: 25px;
+}
+
+#subsubmit_classicItem {
+  background-color: rgb(230, 235, 239);
+  border-color: rgb(230, 235, 239);
+  color: white;
+  font-family: Times;
+  font-size: 18px;
+  margin-left: 30px;
+  margin-top: 10px;
+}
+
+#animation-image-classicItem {
+  margin-left: 20px;
+  width: 600px;
+  height: 450px;
+}

@@ -1,0 +1,53 @@
+#backgroundimage-sale{
+         background-image:url("image/13.jpg");
+         background-position:center;
+         background-repeat:no-repeat;
+         background-size: cover;
+
+}
+
+#space-sale{
+     margin-top:150px;
+}
+
+#green-market-sale{
+          font-size: 85px;
+          font-family:Times;
+          margin-left:540px;
+          text-align: center;
+          color:white;
+
+}
+
+#Save-your-planet-sale{
+           margin-left: 620px;
+           font-size: 35px;
+           color:white;
+}
+
+#and-sale{
+       margin-left:730px;
+       font-size:35px;
+       color:white;
+}
+
+#save-your-committee-sale{
+      margin-left: 590px;
+      font-size: 35px;
+      color:white;
+}
+
+
+#paragraph-sale{
+      color:white;
+      font-size:20px;
+      margin-left:270px;
+
+}
+
+#Register-Now-sale{
+          font-size: 20px;
+          padding-bottom:11px;
+          margin-left:680px;
+          margin-bottom: 115px;
+}

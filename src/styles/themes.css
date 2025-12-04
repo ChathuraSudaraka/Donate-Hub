@@ -1,0 +1,111 @@
+/* Global Theme Variables - Eco-Friendly Colors */
+
+:root {
+  /* Light Theme - Eco-Friendly Colors */
+  --bg-primary: #f8fffe;
+  --bg-secondary: #ffffff;
+  --bg-tertiary: #f0f9ff;
+  --bg-accent: #e6f7ff;
+  
+  --text-primary: #1f2937;
+  --text-secondary: #4b5563;
+  --text-accent: #059669;
+  --text-muted: #6b7280;
+  
+  --green-primary: #10b981;
+  --green-secondary: #059669;
+  --green-light: #d1fae5;
+  --green-dark: #065f46;
+  
+  --earth-brown: #92400e;
+  --earth-light: #fef3c7;
+  --earth-dark: #451a03;
+  
+  --sky-blue: #0ea5e9;
+  --sky-light: #e0f2fe;
+  --sky-dark: #0c4a6e;
+  
+  --nature-orange: #ea580c;
+  --nature-yellow: #eab308;
+  
+  --border-color: #d1d5db;
+  --border-accent: #10b981;
+  
+  --shadow-light: rgba(16, 185, 129, 0.1);
+  --shadow-medium: rgba(16, 185, 129, 0.2);
+  --shadow-heavy: rgba(16, 185, 129, 0.3);
+  
+  --gradient-eco: linear-gradient(135deg, #10b981 0%, #059669 50%, #065f46 100%);
+  --gradient-earth: linear-gradient(135deg, #eab308 0%, #ea580c 50%, #92400e 100%);
+  --gradient-sky: linear-gradient(135deg, #0ea5e9 0%, #0284c7 50%, #0c4a6e 100%);
+}
+
+/* Dark Theme - Eco-Friendly Colors */
+[data-theme="dark"] {
+  --bg-primary: #0f1419;
+  --bg-secondary: #1a202c;
+  --bg-tertiary: #2d3748;
+  --bg-accent: #374151;
+  
+  --text-primary: #f9fafb;
+  --text-secondary: #e5e7eb;
+  --text-accent: #34d399;
+  --text-muted: #9ca3af;
+  
+  --green-primary: #34d399;
+  --green-secondary: #10b981;
+  --green-light: #065f46;
+  --green-dark: #064e3b;
+  
+  --earth-brown: #f59e0b;
+  --earth-light: #451a03;
+  --earth-dark: #92400e;
+  
+  --sky-blue: #38bdf8;
+  --sky-light: #0c4a6e;
+  --sky-dark: #075985;
+  
+  --nature-orange: #fb923c;
+  --nature-yellow: #fbbf24;
+  
+  --border-color: #374151;
+  --border-accent: #34d399;
+  
+  --shadow-light: rgba(52, 211, 153, 0.1);
+  --shadow-medium: rgba(52, 211, 153, 0.2);
+  --shadow-heavy: rgba(52, 211, 153, 0.3);
+  
+  --gradient-eco: linear-gradient(135deg, #34d399 0%, #10b981 50%, #065f46 100%);
+  --gradient-earth: linear-gradient(135deg, #fbbf24 0%, #fb923c 50%, #f59e0b 100%);
+  --gradient-sky: linear-gradient(135deg, #38bdf8 0%, #0ea5e9 50%, #075985 100%);
+}
+
+/* Theme Toggle Animation */
+* {
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* Base Body Styles */
+body {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+}
+
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-secondary);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--green-primary);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--green-secondary);
+}
